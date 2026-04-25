@@ -737,8 +737,14 @@ function Read-VerifyFailDb {
 }
 
 function Save-VerifyFailDb {
-    param([Parameter(Mandatory)]$Db)
-    ($Db | ConvertTo-Json -Depth 10) | Set-Content -Path $script:VerifyFailDb -Encoding utf8
+    # NOTE: do NOT name a parameter `-Db` here. PowerShell auto-aliases
+    # `-Debug` (a common parameter on advanced functions, which any function
+    # with [Parameter(...)] attributes implicitly is) to its prefix, and the
+    # runtime throws "parameter 'Db' cannot be specified because it conflicts
+    # with the parameter alias of the same name for parameter 'Debug'" the
+    # first time a caller writes `-Db $value`.
+    param([Parameter(Mandatory)]$Registry)
+    ($Registry | ConvertTo-Json -Depth 10) | Set-Content -Path $script:VerifyFailDb -Encoding utf8
 }
 
 function Update-VerifyFailRegistry {
@@ -799,7 +805,7 @@ function Update-VerifyFailRegistry {
         fingerprints     = $fpTable
         consecutive_same = $consec
     }
-    Save-VerifyFailDb -Db $db
+    Save-VerifyFailDb -Registry $db
 
     $halt = ($consec.count -ge $VerifyFingerprintConsecLimit) -or ($entry.count -ge $VerifyFingerprintTotalLimit)
     if ($halt) {
@@ -843,7 +849,7 @@ function Reset-VerifyFailConsecutive {
             fingerprints     = $db.fingerprints
             consecutive_same = [pscustomobject]@{ fingerprint = $null; count = 0 }
         }
-        Save-VerifyFailDb -Db $db
+        Save-VerifyFailDb -Registry $db
     }
 }
 
