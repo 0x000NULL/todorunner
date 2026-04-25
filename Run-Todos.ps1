@@ -58,7 +58,8 @@ $script:DepRegistry = @(
         SkipIfLineContains = $null
         Probe              = {
             if ($IsWindows) {
-                if ($env:VCPKG_ROOT -and (Test-Path (Join-Path $env:VCPKG_ROOT 'installed\x64-windows\include\leptonica'))) { return $true }
+                # Match any installed triplet (x64-windows, x64-windows-static-md, etc.)
+                if ($env:VCPKG_ROOT -and (Get-ChildItem (Join-Path $env:VCPKG_ROOT 'installed') -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'include\leptonica') })) { return $true }
                 if (Get-Command tesseract -ErrorAction SilentlyContinue) { return $true }
                 return $false
             }
@@ -77,7 +78,8 @@ $script:DepRegistry = @(
         SkipIfLineContains = 'vendored'
         Probe              = {
             if ($IsWindows) {
-                return ($env:VCPKG_ROOT -and (Test-Path (Join-Path $env:VCPKG_ROOT 'installed\x64-windows\include\openssl')))
+                if (-not $env:VCPKG_ROOT) { return $false }
+                return [bool](Get-ChildItem (Join-Path $env:VCPKG_ROOT 'installed') -Directory -ErrorAction SilentlyContinue | Where-Object { Test-Path (Join-Path $_.FullName 'include\openssl') })
             }
             if (-not (Get-Command pkg-config -ErrorAction SilentlyContinue)) { return $false }
             & pkg-config --exists openssl 2>$null
