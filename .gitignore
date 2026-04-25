@@ -1,0 +1,15 @@
+# Runner state from internal test runs (this repo's own .claude/)
+.claude/
+
+# Local test artifacts (not part of the runner itself)
+rust-gui-test/
+
+# Logs from detached runs
+*.log
+*.err
+run.log
+run.err
+
+# Env files
+.env
+.env.local
