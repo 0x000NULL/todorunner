@@ -1,0 +1,47 @@
+# Fixture toolchain manifest for Run-OsBuild.ps1's smoke test.
+# Points qemu_binary at the mock shim under tests/. POSIX defaults; on Windows
+# without bash on PATH, swap qemu_binary to "pwsh" and the first qemu_args
+# entry to "./tests/mock-qemu.ps1".
+project:
+  name: "fixture-os"
+  arch: "mock"
+  lang: "rust"
+  bootloader: "limine"
+  target_triple: "x86_64-unknown-none"
+
+required_tools:
+  - name: "echo"
+    probe_command: "echo OK"
+    version_regex: ""
+    min_version: ""
+    install_hints:
+      windows: "(builtin)"
+      linux: "(builtin)"
+      mac: "(builtin)"
+    warn_only: true
+
+build:
+  command: "echo 'mock build'"
+  artifact: "tests/fixture-os/mock-kernel.bin"
+  iso_command: ""
+
+boot:
+  qemu_binary: "bash"
+  qemu_args:
+    - "./tests/mock-qemu.sh"
+    - "-kernel"
+    - "{{ARTIFACT}}"
+    - "-serial"
+    - "file:{{SERIAL_LOG}}"
+  timeout_seconds: 10
+  expect_serial:
+    required:
+      - "BOOT_OK"
+    forbidden:
+      - "PANIC"
+      - "DOUBLE FAULT"
+
+blog:
+  repo_path: "./tests/fixture-blog"
+  posts_subdir: "posts"
+  min_words: 50
